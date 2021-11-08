@@ -1,0 +1,3 @@
+resources:
+  - envoy-config.yaml
+  - publisher.yaml

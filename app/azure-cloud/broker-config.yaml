@@ -1,0 +1,10 @@
+apiVersion: v1
+metadata:
+  name: broker-config
+  namespace: default
+kind: ConfigMap
+data:
+  mosquitto.conf: |
+    listener 1883
+    protocol mqtt
+    allow_anonymous true

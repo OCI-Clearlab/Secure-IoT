@@ -1,0 +1,4 @@
+resources:
+  - envoy-config.yaml
+  - broker-config.yaml
+  - broker.yaml

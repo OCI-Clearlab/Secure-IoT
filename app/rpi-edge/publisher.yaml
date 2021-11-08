@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: serviceaccount-publisher
+  labels:
+    account: publisher
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher-v1
+  labels:
+    app: publisher
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     app: publisher
+     version: v1
+  template:
+    metadata:
+      labels:
+        app: publisher
+        version: v1
+    spec:
+      serviceAccount: serviceaccount-publisher
+      containers:
+      - name: publisher
+        image: cloudical/publisher@sha256:595056772bdd8c7afbdb7e2d4ca726a4152eb663db5d673de60a8a7bb031a10b
+        imagePullPolicy: Always
+        env:
+          - name: BROKER_HOST
+            value: 127.0.0.1
+          - name: BROKER_PORT
+            value: "1883"
+      - name: envoy
+        image: docker.io/envoyproxy/envoy:v1.20-latest
+        args: ["-l", "debug", "--local-address-ip-version", "v4", "-c", "/run/envoy/envoy.yaml", "--base-id", "1"]
+        volumeMounts:
+        - name: envoy-config
+          mountPath: "/run/envoy"
+          readOnly: true 
+        - name: spire-agent-socket
+          mountPath: /run/spire/sockets
+          readOnly: true 
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: DirectoryOrCreate

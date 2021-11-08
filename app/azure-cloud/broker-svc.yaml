@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker-lb
+  labels:
+    app: broker
+    service: broker
+spec:
+  type: LoadBalancer
+  selector:
+    app: broker
+  ports:
+    - port: 443
+      name: mqtt-envoy
+      protocol: TCP

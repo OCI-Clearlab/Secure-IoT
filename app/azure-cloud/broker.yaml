@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: serviceaccount-broker
+  labels:
+    account: broker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broker-v1
+  labels:
+    app: broker
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broker
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: broker
+        version: v1
+    spec:
+      serviceAccount: serviceaccount-broker
+      containers:
+      - name: broker
+        image: eclipse-mosquitto:2.0.11
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1883
+          name: port1883
+          protocol: TCP
+        volumeMounts:
+        - name: mosquitto-config
+          mountPath: /mosquitto/config
+      - name: envoy
+        image: envoyproxy/envoy-alpine:v1.14.1 
+        imagePullPolicy: Always 
+        #image: docker.io/envoyproxy/envoy:v1.19-latest 
+        args: ["-l", "debug", "--local-address-ip-version", "v4", "-c", "/run/envoy/envoy.yaml", "--base-id", "1"] 
+        volumeMounts:
+        - name: envoy-config
+          mountPath: "/run/envoy"
+          readOnly: true 
+        - name: spire-agent-socket
+          mountPath: /run/spire/sockets
+          readOnly: true 
+      volumes:
+        - name: mosquitto-config
+          configMap:
+            name: broker-config
+            items:
+              - key: mosquitto.conf
+                path: mosquitto.conf
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: DirectoryOrCreate
