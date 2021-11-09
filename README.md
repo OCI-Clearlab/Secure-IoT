@@ -399,7 +399,7 @@ flux create kustomization iotcloud \
 2. The code requires the following Arduino libraries:
   - DHT Sensor Library: https://github.com/adafruit/DHT-sensor-library
   - Adafruit Unified Sensor Lib: https://github.com/adafruit/Adafruit_Sensor
-3. Please upload sensor.ino to your Arduino nano 33.
+3. Please upload sensor.ino to your Arduino nano 33. Sensor.ino is labeled as patio, if you are using second sensor as well, please update label in sensor.ino to preferred place.
 4. Kubernetes manifests in application deployment step are configured for 2 DHT11 sensors and considered the sensors are connected to the k8s-worker-1 node. Please be aware that you will need to change that in next step, you used different hostaname and connected the sensors to the different node/s.
 
 ## Application Deployment
