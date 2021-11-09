@@ -131,7 +131,9 @@ Since kubernetes on edge side is not managed, we need to configure it manually. 
     sudo mkdir -p /mnt/nfs
     ```
     
-3. Find the group name using `groups` command ** JJP- need more context here so the user knows what you need them to do. Show an example of running the command. **
+3. Find the group name using `groups` command. Group name will be used in next step. 
+   Ex. `groups clearlab` returns users and docker groups. 
+   
 4. Change folder access to mnt. Reset owner to account being used instead of root.
     
     ```bash
