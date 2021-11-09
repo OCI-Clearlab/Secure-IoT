@@ -258,8 +258,6 @@ Copy and paster your public key to your git account.
 
 ### Bootstrapping with Flux
 
-** JJP- This part can be tricky (I remember doing it). Let's give a bit more context here and walk the user through what they are doing **
-
 1. Create a new project in your preferred repository.
 2. Use following command to bootstrap your clusters;
 (Below is for GitHub, if you use GitLab or other git enterprise solutions, check out the following link https://fluxcd.io/docs/get-started/.)
