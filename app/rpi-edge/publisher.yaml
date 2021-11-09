@@ -27,13 +27,20 @@ spec:
       serviceAccount: serviceaccount-publisher
       containers:
       - name: publisher
-        image: cloudical/publisher@sha256:595056772bdd8c7afbdb7e2d4ca726a4152eb663db5d673de60a8a7bb031a10b
+        securityContext:
+          privileged: true
+        image: cloudical/publisher@sha256:4f7b14a916c7896f5150eb124b8ff3967129f9690ac93e3dfce94ca84bfd2702
         imagePullPolicy: Always
         env:
           - name: BROKER_HOST
-            value: 127.0.0.1
+            value: localhost
           - name: BROKER_PORT
             value: "1883"
+        volumeMounts:
+        - mountPath: /dev/ttyACM0
+          name: ttyacm0
+        - mountPath: /dev/ttyACM1
+          name: ttyacm1
       - name: envoy
         image: docker.io/envoyproxy/envoy:v1.20-latest
         args: ["-l", "debug", "--local-address-ip-version", "v4", "-c", "/run/envoy/envoy.yaml", "--base-id", "1"]
@@ -44,7 +51,15 @@ spec:
         - name: spire-agent-socket
           mountPath: /run/spire/sockets
           readOnly: true 
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker-01
       volumes:
+        - name: ttyacm0
+          hostPath:
+            path: /dev/ttyACM0
+        - name: ttyacm1
+          hostPath:
+            path: /dev/ttyACM1
         - name: envoy-config
           configMap:
             name: envoy-config
