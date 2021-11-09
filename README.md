@@ -397,8 +397,12 @@ flux create kustomization iotcloud \
     Please make sure if you get successfully bundled message, before move on next step.
     
 ## Sensor Setup
-1. This step requires Arduino IDE. It can be downladed from https://www.arduino.cc/en/software . Please upload sensor.ino to your Arduino nano 33.
-2. Kubernetes manifests in application deployment step are configured for 2 DHT11 sensors and considered the sensors are connected to the k8s-worker-1 node. Please be aware that you will need to change that in next step, you used different hostaname and connected the sensors to the different node/s.
+1. This step requires Arduino IDE. It can be downladed from https://www.arduino.cc/en/software . 
+2. The code requires the following Arduino libraries:
+  - DHT Sensor Library: https://github.com/adafruit/DHT-sensor-library
+  - Adafruit Unified Sensor Lib: https://github.com/adafruit/Adafruit_Sensor
+3. Please upload sensor.ino to your Arduino nano 33.
+4. Kubernetes manifests in application deployment step are configured for 2 DHT11 sensors and considered the sensors are connected to the k8s-worker-1 node. Please be aware that you will need to change that in next step, you used different hostaname and connected the sensors to the different node/s.
 
 ## Application Deployment
 ### Cloud Side
