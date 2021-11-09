@@ -2,3 +2,6 @@ resources:
   - envoy-config.yaml
   - broker-config.yaml
   - broker.yaml
+  - influxdb.yaml
+  - telegraf.yaml
+  - grafana.yaml
