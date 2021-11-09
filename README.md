@@ -204,11 +204,9 @@ Since kubernetes on edge side is not managed, we need to configure it manually. 
 ### On Worker Nodes (one at a time)
 
 1. Install NFS tools
-
-** JJP- I am assuming the a. is an error **
     
     ```bash
-    a.	sudo apt-get install nfs-common -y
+    sudo apt-get install nfs-common -y
     ```
     
 2. Add following to /etc/fstab in your worker nodes. Make sure you updated IP and mounting point. For more info use `man fstab` command in your terminal.
