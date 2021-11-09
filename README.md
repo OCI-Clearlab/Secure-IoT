@@ -44,6 +44,8 @@ Server Side:
 
 We use Kubernetes for orchestration.
 
+** JJP- We should explicitly tell the user to run the code listed below on the designated nodes **
+
 ALL NODES
 
 ```bash
@@ -106,6 +108,8 @@ kubectl get pods -n kube-system
 
 ON NODES
 
+** JJP- Where does the user get the token? **
+
 ```bash
 sudo kubeadm join --token <token> <IP>:6443
 ```
@@ -127,7 +131,7 @@ sudo kubeadm join --token <token> <IP>:6443
     sudo mkdir -p /mnt/nfs
     ```
     
-3. Find the group name using `groups` command
+3. Find the group name using `groups` command ** JJP- need more context here so the user knows what you need them to do. Show an example of running the command. **
 4. Change folder access to mnt. Reset owner to account being used instead of root.
     
     ```bash
@@ -180,7 +184,7 @@ sudo kubeadm join --token <token> <IP>:6443
     UUID="5AEB-8BFD" /mnt/nfs auto nosuid,nodev,nofail,noatime 0 0
     ```
     
-5. Enable then start the NSF server service and rpcbind.
+5. Enable and start the NSF server service and rpcbind.
     
     ```bash
     sudo systemctl enable rpcbind.service
@@ -189,7 +193,7 @@ sudo kubeadm join --token <token> <IP>:6443
     sudo systemctl start nfs-server.service
     ```
     
-6. Create test file on NFS.
+6. Create test file on the NFS to verify all works properly.
     
     ```bash
     echo "hello , howdy??" >> /mnt/nfs/nfs_test
@@ -200,6 +204,8 @@ sudo kubeadm join --token <token> <IP>:6443
 ### On Worker Nodes (one at a time)
 
 1. Install NFS tools
+
+** JJP- I am assuming the a. is an error **
     
     ```bash
     a.	sudo apt-get install nfs-common -y
@@ -253,6 +259,8 @@ Copy and paster your public key to your git account.
 
 ### Bootstrapping with Flux
 
+** JJP- This part can be tricky (I remember doing it). Let's give a bit more context here and walk the user through what they are doing **
+
 1. Create a new project in your repo.
 2. Use following command to bootstrap your cluster;
 
@@ -271,6 +279,8 @@ flux bootstrap git \
 
 ### SPIRE Deployment
 
+** JJP- So, what do we do with the cloud LB IP address? Do we put it in the .yaml file? If we use it in a later step, tell the user here. **
+ 
 1. Cloud side LB IP of spire server will be needed in order to configure federation with edge side.
     
     ```
