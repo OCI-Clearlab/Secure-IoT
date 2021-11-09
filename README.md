@@ -452,7 +452,7 @@ flux create kustomization iotcloud \
     
     ```
 
-7. Application can be tested using Grafana dashboard. Please import JSON file from this repo to your dashbboard. (Usernama/password is admin/admin) 
+7. Application can be tested using Grafana dashboard. Please import sensor.json file from app/dashboard/ to your grafana dashbboard. (Username/password for gragana is admin/admin).  
 
 
 ## Clean
