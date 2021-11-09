@@ -42,11 +42,10 @@ Server Side:
 
 ## Kubernetes
 
-We use Kubernetes for orchestration.
-
-** JJP- We should explicitly tell the user to run the code listed below on the designated nodes **
+We use Kubernetes for orchestration. Below code blocks will be run the edge devices.
 
 ALL NODES
+The code blocks that are listed will be run on all nodes.
 
 ```bash
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
@@ -93,6 +92,7 @@ sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
 ON MASTER
+The code block below will be run on master node only. After running kubeadm command, the token and IP that are needed for next step will be printed to the screen.
 
 ```bash
 sudo kubeadm init --pod-network-cidr 10.244.0.0/16
@@ -108,14 +108,14 @@ kubectl get pods -n kube-system
 
 ON NODES
 
-** JJP- Where does the user get the token? **
+Please use the command generated as output of kubeadm command on worker nodes. Syntax looks like as below.
 
 ```bash
 sudo kubeadm join --token <token> <IP>:6443
 ```
 
 ## Setting Up NFS
-
+Since kubernetes on edge side is not managed, we need to configure it manually. Below steps will give to the kubernetes cluster ability to provision volume claims dynamically.
 ### On Master Node
 
 1. Install packages required to create NSF 
@@ -230,6 +230,7 @@ Then check if you can see the file you created in above steps. `cat /mnt/nfs_tes
 
 
 ## Installing Flux
+We use Flux for continuous and progressive delivery solutions. 
 
 This step will be performed in your master node.
 
@@ -261,27 +262,86 @@ Copy and paster your public key to your git account.
 
 ** JJP- This part can be tricky (I remember doing it). Let's give a bit more context here and walk the user through what they are doing **
 
-1. Create a new project in your repo.
-2. Use following command to bootstrap your cluster;
+1. Create a new project in your preferred repository.
+2. Use following command to bootstrap your clusters;
+(Below is for GitHub, if you use GitLab or other git enterprise solutions, check out the following link https://fluxcd.io/docs/get-started/.)
+
+#### Edge Side 
 
 ```bash
-flux bootstrap git \
-  --url=https://<host>/<org>/<repository> \
+flux bootstrap github \
+  --context=<your context for edge> \
+  --repository=<the repo you created in step one>  \
   --branch=<my-branch> \
-  --username=<my-username> \
-  --password=<my-password> \
-  --token-auth=true \
-  --path=clusters/my-cluster
+  --owner=< your GitHub username> \
+  --personal \
+  --path=clusters/edge
 ```
 
+#### Cloud Side 
 
-## SPIRE - Envoy
+```bash
+flux bootstrap github \
+  --context=<your context for cloud> \
+  --repository=<the repo you created in step one>  \
+  --branch=<my-branch> \
+  --owner=< your GitHub username> \
+  --personal \
+  --path=clusters/cloud
+```
+### Adding Source and Kustomization 
+Below steps configure the repo that flux monitors. (You will be use this repo as your project. Please make sure you either forked or cloned and uploaded to your repo.)
 
-### SPIRE Deployment
+#### Edge Side 
+```bash
+flux create source git iotedge \
+  --context=<your context for edge> \
+  --url=https://github.com/<your github username>/<your project> \
+  --branch=<my-branch> \
+  --interval=30s \
+  --username=<github username> \
+  --password=<token that you generated from github settings>
+```
 
-** JJP- So, what do we do with the cloud LB IP address? Do we put it in the .yaml file? If we use it in a later step, tell the user here. **
+```bash
+flux create kustomization iotedge \
+  --context=<your context for edge> \
+  --target-namespace=default \
+  --source=iotedge \
+  --path="./rpi-edge/app/envoy" \
+  --prune=true \
+  --validation=client \
+  --interval=5m
+```
+
+#### Cloud Side 
+
+```bash
+flux create source git iocloud \
+  --context=<your context for cloud> \
+  --url=https://github.com/<your github username>/<your project> \
+  --branch=<my-branch> \
+  --interval=30s \
+  --username=<github username> \
+  --password=<token that you generated from github settings>
+```
+
+```bash
+flux create kustomization iotcloud \
+  --context=<your context for cloud> \
+  --target-namespace=default \
+  --source=iotcloud \
+  --path="./azure-cloud/app/envoy" \
+  --prune=true \
+  --validation=client \
+  --interval=5m
+```
+
+## SPIRE Deployment
+
+### Cloud Side
  
-1. Cloud side LB IP of spire server will be needed in order to configure federation with edge side.
+1. Cloud side LB IP of spire server will be needed in order to configure federation with edge side. ( It will be used in step 4.)
     
     ```
     cd spire/azure-cloud
@@ -303,7 +363,7 @@ flux bootstrap git \
     sh create-node-registration-entry.sh
     
     ```
-    
+### Edge Side    
 4. Before deploying resources for edge, bundle endpoint should be set in configuration file of spire server. This endpoint is LB IP of cloud side spire server that we deployed in step1. In order to update the `bundle_endpoint.address` please go to line 35 in `server-configmap.yaml` . Obtain the external IP of spire server by using `kubectl --kubeconfig ~/.kube/cloud get svc -nspire`
     
     ```
@@ -336,9 +396,12 @@ flux bootstrap git \
     
     Please make sure if you get successfully bundled message, before move on next step.
     
+## Sensor Setup
+1. This step requires Arduino IDE. It can be downladed from https://www.arduino.cc/en/software . Please upload sensor.ino to your Arduino nano 33.
+2. Kubernetes manifests in application deployment step are configured for 2 DHT11 sensors and considered the sensors are connected to the k8s-worker-1 node. Please be aware that you will need to change that in next step, you used different hostaname and connected the sensors to the different node/s.
 
 ## Application Deployment
-
+### Cloud Side
 1. Load balancer IP of broker will be needed in order to configure publisher in edge side.
     
     ```
@@ -353,7 +416,7 @@ flux bootstrap git \
     kubectl --kubeconfig ~/.kube/cloud apply -k .
     
     ```
-    
+### Edge Side    
 3. Before deploying resources for edge, broker LB should be set in configuration file of envoy. In order to update the `endpoint.socket_address` please go to line 55 in `envoy-config.yaml` . Obtain the external IP of broker by using `kubectl --kubeconfig ~/.kube/cloud get svc`
     
     ```
@@ -368,7 +431,7 @@ flux bootstrap git \
     kubectl --kubeconfig ~/.kube/edge apply -k .
     ```
     
-5. Check both broker and publisher if applications are running
+5. Check both edge and cloud if applications are running
     
     ```bash
     watch kubectl --kubeconfig ~/.kube/cloud get po
@@ -384,7 +447,6 @@ flux bootstrap git \
     sh workloadEntry-cloud.sh
     
     ```
-    
 
 7. Application can be tested using Grafana dashboard. Please import JSON file from this repo to your dashbboard. (Usernama/password is admin/admin) 
 
